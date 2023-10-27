@@ -80,7 +80,7 @@ def run_subprocess(cmd):
 
 def convert_sdf_to_pdbqt(lig_library, pH=7.4):
     """
-    Add protonation state to conformers and convert SDF to PDBQT using obabel.
+    Add protonation state to conformers and convert SDF to PDBQT using openbabel.
 
     Args:
         lig_library (str): ligand library in SDF format prepared by the user.
@@ -99,10 +99,8 @@ def remove_blank_pdbqt_files():
     Remove blank pdbqt files generated during the conversion
     """
     for file in ["prep_subs.pdbqt", "conformers.pdbqt"]:
-        try:
+        with suppress(FileNotFoundError):
             os.remove(file)
-        except FileNotFoundError:
-            pass
 
 
 def run_vina_on_ligands():
@@ -234,11 +232,12 @@ def main():
     move_results("results", RES, "startswith")
 
     # make complexes
-    assemble_complexes_list(COMPLEXES)
-    pymol.finish_launching()
-    make_complexes(RECEPTOR_FILE)
-    pymol.cmd.quit()
-    os.system("mv *.pdb complexes/")
+    if COMPLEXES is not None:
+        assemble_complexes_list(COMPLEXES)
+        pymol.finish_launching()
+        make_complexes(RECEPTOR_FILE)
+        pymol.cmd.quit()
+        os.system("mv *.pdb complexes/")
 
 
 if __name__ == "__main__":
