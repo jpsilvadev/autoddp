@@ -1,6 +1,7 @@
 """
 Assumptions made:
  - ligands are in library format (e.g., a single file containing all ligands)
+ - os.name == "posix" //TODO: generalize with vina python bindings for multi-platform support
 """
 import os
 import time
