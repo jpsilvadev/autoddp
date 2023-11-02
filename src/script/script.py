@@ -122,7 +122,6 @@ def assemble_complexes_list(comp_num):
 
 
 def make_complexes():
-
     os.chdir(COMPS)
     pymol.pymol_argv = ["pymol", "-qc"]
     pymol.finish_launching()
