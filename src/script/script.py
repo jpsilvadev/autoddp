@@ -127,6 +127,8 @@ def make_complexes():
     pymol.finish_launching()
 
     for lig in os.listdir():
+        if lig == RECEPTOR_FILE:
+            continue
         pymol.cmd.load(RECEPTOR_FILE, "receptor")
         pymol.cmd.load(lig, "lig")
         complex_name = f"complex_{lig}.pdb"
