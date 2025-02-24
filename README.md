@@ -1,1 +1,1 @@
-# vina-dock
+# autoddp
