@@ -231,7 +231,7 @@ def main():
 
 if __name__ == "__main__":
     # Set up argparse to handle command-line arguments
-    parser = argparse.ArgumentParser(description="Script for Vina Docking")
+    parser = argparse.ArgumentParser(description="autoddp: automate the boring stuff")
     parser.add_argument(
         "--receptor",
         "-r",
