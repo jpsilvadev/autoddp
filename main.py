@@ -1,9 +1,3 @@
-"""
-Assumptions made:
- - ligands are in library format (e.g., a single file containing all ligands)
- - os.name == "posix" //TODO: generalize with vina python bindings for multi-platform support
-"""
-
 import os
 import time
 import shutil
@@ -23,6 +17,12 @@ COMPS = os.path.join(PATH, "complexes")
 
 
 def setup_logging():
+    """
+    Set up logging to both a file and the console.
+    It creates two handlers: one to log messages to a file named 'docking_log.txt'
+    and another to log messages to the console.
+    """
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
@@ -31,6 +31,15 @@ def setup_logging():
 
 
 def move_results(extension, path, position):
+    """
+    Make storage and move files with startswith/endswith extension.
+
+    Args:
+        extension (str): File extension to move.
+        path (str): Destination path to move files.
+        position (str): Either 'startswith' or 'endswith' to specify how to match the file names.
+    """
+
     try:
         if not os.path.exists(path):
             os.mkdir(path)
@@ -43,6 +52,19 @@ def move_results(extension, path, position):
 
 
 def run_subprocess(cmd):
+    """
+    Helper function to run_vina_on_ligands. Responsible for capturing stdout for logs.
+
+    Args:
+        cmd (str): vina cmd to run docking process
+
+    Returns:
+        str: stdout of the command
+
+    Raises:
+        subprocess.CalledProcessError: If the command returns a non-zero exit code.
+    """
+
     try:
         completed_process = subprocess.run(
             cmd, shell=True, text=True, capture_output=True, check=True
@@ -54,6 +76,14 @@ def run_subprocess(cmd):
 
 
 def convert_sdf_to_pdbqt(lig_library, pH=7.4):
+    """
+    Add protonation state to conformers and convert SDF to PDBQT using obabel.
+
+    Args:
+        lig_library (str): ligand library in SDF format prepared by the user.
+        pH (float, optional): pH for ligand protonation. Defaults to 7.4.
+    """
+
     if pH == 0:
         os.system(f"obabel {lig_library} -O prep_subs.sdf --unique cansmiNS")
     else:
@@ -68,6 +98,11 @@ def convert_sdf_to_pdbqt(lig_library, pH=7.4):
 
 
 def run_vina_on_ligands():
+    """
+    Run Vina for each ligand (excluding the receptor).
+    Calls all pdbqt ligands, prints stdout and logs to file.
+    """
+
     for file in os.listdir(PATH):
         if file == RECEPTOR_FILE:
             continue
@@ -79,8 +114,23 @@ def run_vina_on_ligands():
                 log.write(output)
 
 
+def read_num_poses():
+    """
+    Read the number of poses from the configuration file.
+    """
+
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("num_modes"):
+                return int(line.split("=")[1].strip())
+
+
 def extract_and_sort_results():
-    os.system("tail -n14 *.log > results.txt")
+    """
+    Extract scores from log files and create a sorted results.txt file.
+    """
+
+    os.system(f"tail -n{read_num_poses() + 4} *.log > results.txt")
 
     print("\nStarting analysis...")
     dct = {}
@@ -108,6 +158,13 @@ def extract_and_sort_results():
 
 
 def assemble_complexes_list(comp_num):
+    """
+    Helper func to make_complexes
+
+    Args:
+        comp_num (int): num of complexes to make
+    """
+
     with open(os.path.join(RES, "results_sorted.txt"), "r", encoding="utf-8") as res:
         lines = res.readlines()[2:]
         complexes = []
@@ -123,6 +180,13 @@ def assemble_complexes_list(comp_num):
 
 
 def make_complexes():
+    """
+    Make receptor-ligand complexes of top ligands
+
+    Args:
+        receptor (str): receptor protein
+    """
+
     os.chdir(COMPS)
     pymol.pymol_argv = ["pymol", "-qc"]
     pymol.finish_launching()
